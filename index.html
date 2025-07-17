@@ -678,6 +678,16 @@
             const mainContent = document.getElementById('main-content');
             let message = ''; // To display feedback messages
 
+            // Helper function to generate options for a dropdown
+            const generateOptions = (start, end, increment, unit) => {
+                let optionsHtml = `<option value="">Select ${unit}</option>`;
+                optionsHtml += `<option value="0">0 ${unit}</option>`; // Add a zero option
+                for (let i = start; i <= end; i += increment) {
+                    optionsHtml += `<option value="${i}">${i} ${unit}</option>`;
+                }
+                return optionsHtml;
+            };
+
             const InputCardHTML = (title, iconName, inputsHtml, logHandlerName) => `
                 <div class="bg-gradient-to-tr from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-4 md:p-6 rounded-xl shadow-md flex flex-col">
                     <div class="flex items-center mb-3 md:mb-4">
@@ -709,12 +719,16 @@
                                 <option value="">Select Mode</option>
                                 ${Object.keys(EMISSION_FACTORS.transport).map(mode => `<option value="${mode}">${mode}</option>`).join('')}
                             </select>
-                            <input type="text" id="transport-distance" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="Distance (km)" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base" />
+                            <select id="transport-distance" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
+                                ${generateOptions(1, 500, 5, 'km')}
+                            </select>
                         `, 'transport')}
 
                         <!-- Electricity -->
                         ${InputCardHTML('Electricity', 'zap', `
-                            <input type="text" id="electricity-units" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="Units Used (kWh)" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base" />
+                            <select id="electricity-units" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
+                                ${generateOptions(1, 500, 5, 'kWh')}
+                            </select>
                             <select id="electricity-location" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
                                 ${Object.keys(EMISSION_FACTORS.electricity).map(loc => `<option value="${loc}" ${loc === 'India' ? 'selected' : ''}>${loc}</option>`).join('')}
                             </select>
@@ -734,12 +748,16 @@
                                 <option value="">Select Category</option>
                                 ${Object.keys(EMISSION_FACTORS.purchases).map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                             </select>
-                            <input type="text" id="purchase-cost" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="Cost (₹ or $)" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base" />
+                            <select id="purchase-cost" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
+                                ${generateOptions(100, 50000, 500, 'currency units')}
+                            </select>
                         `, 'purchase')}
 
                         <!-- Home Heating/Cooling -->
                         ${InputCardHTML('Home Heating/Cooling', 'thermometer', `
-                            <input type="text" id="heating-cooling-duration" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="Duration (hours)" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base" />
+                            <select id="heating-cooling-duration" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
+                                ${generateOptions(1, 24, 1, 'hours')}
+                            </select>
                         `, 'home-heating-cooling')}
                     </div>
 
@@ -783,31 +801,31 @@
                 setTimeout(() => resultDiv.classList.add('hidden'), 5000);
             };
 
-            // Event Listeners for Log Activity
+            // Event Listeners for Log Activity - MUST be re-attached after innerHTML update
             document.getElementById('log-transport').addEventListener('click', () => {
                 const mode = document.getElementById('transport-mode').value;
                 const distance = parseFloat(document.getElementById('transport-distance').value);
-                if (mode && distance > 0) {
+                if (mode && !isNaN(distance) && distance >= 0) { // Check for >=0 as 0 is a valid option
                     const emission = EMISSION_FACTORS.transport[mode] * distance;
                     addEmissionEntry(appState.currentDate, 'Transport', emission);
                     displayResult('Transport', emission);
                     document.getElementById('transport-mode').value = '';
-                    document.getElementById('transport-distance').value = '';
+                    document.getElementById('transport-distance').value = ''; // Reset dropdown
                 } else {
-                    showMessage('Please select mode and enter distance for Transport.', 'error');
+                    showMessage('Please select mode and a valid distance for Transport.', 'error');
                 }
             });
 
             document.getElementById('log-electricity').addEventListener('click', () => {
                 const units = parseFloat(document.getElementById('electricity-units').value);
                 const location = document.getElementById('electricity-location').value;
-                if (units > 0 && location) {
+                if (!isNaN(units) && units >= 0 && location) { // Check for >=0
                     const emission = EMISSION_FACTORS.electricity[location] * units;
                     addEmissionEntry(appState.currentDate, 'Electricity', emission);
                     displayResult('Electricity', emission);
-                    document.getElementById('electricity-units').value = '';
+                    document.getElementById('electricity-units').value = ''; // Reset dropdown
                 } else {
-                    showMessage('Please enter units and select location for Electricity.', 'error');
+                    showMessage('Please enter valid units and select location for Electricity.', 'error');
                 }
             });
 
@@ -826,26 +844,26 @@
             document.getElementById('log-purchase').addEventListener('click', () => {
                 const category = document.getElementById('purchase-category').value;
                 const cost = parseFloat(document.getElementById('purchase-cost').value);
-                if (category && cost > 0) {
+                if (category && !isNaN(cost) && cost >= 0) { // Check for >=0
                     const emission = EMISSION_FACTORS.purchases[category] * cost;
                     addEmissionEntry(appState.currentDate, 'Purchases', emission);
                     displayResult('Purchases', emission);
                     document.getElementById('purchase-category').value = '';
-                    document.getElementById('purchase-cost').value = '';
+                    document.getElementById('purchase-cost').value = ''; // Reset dropdown
                 } else {
-                    showMessage('Please select category and enter cost for Purchases.', 'error');
+                    showMessage('Please select category and enter a valid cost for Purchases.', 'error');
                 }
             });
 
             document.getElementById('log-home-heating-cooling').addEventListener('click', () => {
                 const duration = parseFloat(document.getElementById('heating-cooling-duration').value);
-                if (duration > 0) {
+                if (!isNaN(duration) && duration >= 0) { // Check for >=0
                     const emission = EMISSION_FACTORS.homeHeatingCooling['AC/Heater'] * duration;
                     addEmissionEntry(appState.currentDate, 'Home Heating/Cooling', emission);
                     displayResult('Home Heating/Cooling', emission);
-                    document.getElementById('heating-cooling-duration').value = '';
+                    document.getElementById('heating-cooling-duration').value = ''; // Reset dropdown
                 } else {
-                    showMessage('Please enter duration for Home Heating/Cooling.', 'error');
+                    showMessage('Please enter a valid duration for Home Heating/Cooling.', 'error');
                 }
             });
         }
