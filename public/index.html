@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Eco Log</title>
+    <!-- Favicon (Leaf emoji as data URI) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
+    <!-- Tailwind CSS CDN (for quick preview, replace with production build link) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll, main content will scroll */
+        }
+        /* Ensure the root element fills the screen and allows flexbox for layout */
+        #app {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+        /* Ensure main content area is scrollable */
+        #main-content {
+            flex-grow: 1;
+            padding: 1rem; /* Adjusted padding for smaller screens */
+            overflow-y: auto; /* Enable vertical scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            #main-content {
+                padding: 1.5rem; /* p-6 */
+            }
+        }
+
+        /* Custom modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+        .modal-content.dark {
+            background-color: #1f2937; /* gray-800 */
+            color: #f9fafb; /* gray-100 */
+        }
+
+        /* Responsive sidebar specific styles */
+        #sidebar {
+            position: fixed; /* Fixed position for mobile overlay */
+            top: 0;
+            left: 0;
+            height: 100%;
+            transform: translateX(-100%); /* Start off-screen */
+            transition: transform 0.3s ease-out; /* Smooth slide transition */
+            z-index: 100; /* Above main content, below modal */
+            width: 256px; /* w-64 */
+        }
+
+        #sidebar.open {
+            transform: translateX(0); /* Slide in */
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); /* Add shadow when open */
+        }
+
+        /* Backdrop for mobile sidebar */
+        #sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 90; /* Below sidebar, above main content */
+            display: none; /* Hidden by default */
+        }
+        #sidebar-backdrop.active {
+            display: block; /* Show when active */
+        }
+
+        /* Desktop sidebar behavior */
+        @media (min-width: 768px) { /* md breakpoint */
+            #sidebar {
+                position: static; /* Static positioning for desktop */
+                transform: translateX(0); /* Always visible */
+                flex-shrink: 0; /* Prevent shrinking */
+                box-shadow: none; /* No shadow on desktop */
+                display: flex !important; /* Override hidden on desktop */
+            }
+            #sidebar-backdrop {
+                display: none !important; /* Always hidden on desktop */
+            }
+            #main-content {
+                padding-left: 1.5rem; /* Adjust padding if sidebar is static */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div id="app" class="flex h-screen w-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-900 dark:text-gray-100 p-4 flex-col">
+            <div class="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-blue-600 dark:from-green-400 dark:to-blue-400">
+                My Eco Log
+            </div>
+            <nav class="flex-grow">
+                <ul>
+                    <li class="mb-2">
+                        <button id="nav-home" class="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm md:text-base">
+                            <i data-lucide="home" class="mr-3 w-4 h-4 md:w-5 md:h-5"></i>Home
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button id="nav-log" class="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm md:text-base">
+                            <i data-lucide="activity" class="mr-3 w-4 h-4 md:w-5 md:h-5"></i>Log Activity
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button id="nav-history" class="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm md:text-base">
+                            <i data-lucide="history" class="mr-3 w-4 h-4 md:w-5 md:h-5"></i>History
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button id="nav-compare" class="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm md:text-base">
+                            <i data-lucide="scale" class="mr-3 w-4 h-4 md:w-5 md:h-5"></i>Compare
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button id="nav-learn" class="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm md:text-base">
+                            <i data-lucide="book" class="mr-3 w-4 h-4 md:w-5 md:h-5"></i>Learn
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button id="nav-settings" class="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm md:text-base">
+                            <i data-lucide="settings" class="mr-3 w-4 h-4 md:w-5 md:h-5"></i>Settings
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="mt-auto pt-4 border-t border-gray-300 dark:border-gray-700">
+                <button id="theme-toggle" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 text-sm md:text-base">
+                    <i data-lucide="moon" class="mr-3 w-4 h-4 md:w-5 md:h-5" id="theme-icon"></i>
+                    <span id="theme-text">Dark Mode</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar Backdrop (for mobile overlay) -->
+        <div id="sidebar-backdrop" class="hidden" onclick="toggleSidebar()"></div>
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="flex-grow p-4 sm:p-6 overflow-y-auto">
+            <!-- Hamburger menu for mobile -->
+            <button id="sidebar-toggle-btn" class="md:hidden p-2 mb-4 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <!-- Content will be dynamically loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmation-modal" class="modal-overlay hidden">
+        <div class="modal-content rounded-xl shadow-lg">
+            <p id="modal-message" class="text-base md:text-lg mb-6"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition-all duration-200 text-sm md:text-base">Cancel</button>
+                <button id="modal-confirm" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 text-sm md:text-base">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to your main JavaScript file -->
+    <script src="./script.js"></script>
+</body>
+</html>
