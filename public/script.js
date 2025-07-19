@@ -15,27 +15,27 @@ const appState = {
 // --- Emission Factors & Constants ---
 const EMISSION_FACTORS = {
     transport: {
-        'Car (Petrol)': 0.192, // kg CO2/km
-        'Car (Diesel)': 0.171, // kg CO2/km
-        'Bus': 0.105, // kg CO2/km
-        'Train': 0.041, // kg CO2/km
-        'Metro': 0.025, // kg CO2/km
-        'Flight (Short-haul)': 0.255, // kg CO2/km (e.g., < 1000km)
-        'Flight (Long-haul)': 0.155, // kg CO2/km (e.g., > 1000km)
+        'Car (Petrol)': 0.165, // kg CO2/km
+        'Car (Diesel)': 0.150, // kg CO2/km
+        'Bus': 0.050, // kg CO2/km
+        'Train': 0.020, // kg CO2/km
+        'Metro': 0.005, // kg CO2/km
+        'Flight (Short-haul)': 0.230, // kg CO2/km (e.g., < 1000km)
+        'Flight (Long-haul)': 0.120, // kg CO2/km (e.g., > 1000km)
         'Walking': 0,
         'Bicycle': 0,
     },
     electricity: {
         'Global Average': 0.475, // kg CO2/kWh
-        'India': 0.82, // kg CO2/kWh
+        'India': 0.71, // kg CO2/kWh
         'USA': 0.39, // kg CO2/kWh
         'EU': 0.275, // kg CO2/kWh
     },
     food: {
-        'Vegan': 1.5, // kg CO2e/day
-        'Vegetarian': 2.5, // kg CO2e/day
-        'Mixed (1-2 non-veg meals)': 4.0, // kg CO2e/day
-        'Fully Non-Veg': 7.0, // kg CO2e/day
+        'Vegan': 1.0, // kg CO2e/day
+        'Vegetarian': 2.0, // kg CO2e/day
+        'Mixed (1-2 non-veg meals)': 3.5, // kg CO2e/day
+        'Fully Non-Veg': 6.0, // kg CO2e/day
     },
     purchases: {
         'Electronics': 0.5, // kg CO2e/$
@@ -44,13 +44,13 @@ const EMISSION_FACTORS = {
         'General Goods': 0.2, // kg CO2e/$ (fallback)
     },
     homeHeatingCooling: {
-        'AC/Heater': 1.23, // kg CO2e/hour (assuming 1.5kW * 0.82 kg/kWh for India)
+        'AC/Heater': 1.065, // kg CO2e/hour (assuming 1.5kW * 0.71 kg/kWh for India)
     },
 };
 
 const DAILY_AVERAGES = {
     global: 13, // kg CO2/day
-    india: 6.8, // kg CO2/day
+    india: 6.6, // kg CO2/day
     sustainable: 2.5, // kg CO2/day
 };
 
@@ -336,8 +336,7 @@ function renderHomePage() {
     const existingContent = mainContent.innerHTML;
 
     mainContent.innerHTML = `
-        ${existingContent} <!-- Re-add the sidebar toggle button if it was there -->
-        <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
+        ${existingContent} <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
             <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 Dashboard Overview
                 <div class="flex items-center space-x-2 mt-4 sm:mt-0">
@@ -354,7 +353,6 @@ function renderHomePage() {
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-                <!-- Today's Emissions -->
                 <div class="bg-gradient-to-tr from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 p-4 md:p-6 rounded-xl shadow-md flex flex-col items-center justify-center text-center">
                     <i data-lucide="activity" class="w-8 h-8 md:w-12 md:h-12 text-green-700 dark:text-green-300 mb-2 md:mb-3"></i>
                     <p class="text-base md:text-lg text-green-800 dark:text-green-200">Today's Emissions (${appState.currentDate})</p>
@@ -377,7 +375,6 @@ function renderHomePage() {
                     }
                 </div>
 
-                <!-- Weekly Total -->
                 <div class="bg-gradient-to-tr from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 p-4 md:p-6 rounded-xl shadow-md flex flex-col items-center justify-center text-center">
                     <i data-lucide="calendar-days" class="w-8 h-8 md:w-12 md:h-12 text-blue-700 dark:text-blue-300 mb-2 md:mb-3"></i>
                     <p class="text-base md:text-lg text-blue-800 dark:text-blue-200">Weekly Total Emissions</p>
@@ -397,7 +394,6 @@ function renderHomePage() {
                     }
                 </div>
 
-                <!-- Badge Progress -->
                 <div class="bg-gradient-to-tr from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 p-4 md:p-6 rounded-xl shadow-md flex flex-col items-center justify-center text-center">
                     <i data-lucide="award" class="w-8 h-8 md:w-12 md:h-12 text-purple-700 dark:text-purple-300 mb-2 md:mb-3"></i>
                     <p class="text-base md:text-lg text-purple-800 dark:text-purple-200">Badge Progress</p>
@@ -432,7 +428,6 @@ function renderHomePage() {
                 </div>
             </div>
 
-            <!-- Today's Category Breakdown -->
             ${todayEmissions.total > 0 ? `
                 <div class="bg-gradient-to-tr from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-4 md:p-6 rounded-xl shadow-md mb-6 md:mb-8">
                     <h3 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4 text-gray-800 dark:text-gray-100">
@@ -453,7 +448,6 @@ function renderHomePage() {
                 </div>` : ''
             }
 
-            <!-- Quick Tips -->
             <div class="bg-gradient-to-tr from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-4 md:p-6 rounded-xl shadow-md">
                 <h3 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4 text-gray-800 dark:text-gray-100">
                     Quick Tips to Reduce Your Footprint
@@ -520,14 +514,12 @@ function renderLogActivityPage() {
     const existingContent = mainContent.innerHTML;
 
     mainContent.innerHTML = `
-        ${existingContent} <!-- Re-add the sidebar toggle button if it was there -->
-        <div class="p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-xl shadow-lg h-full overflow-y-auto">
+        ${existingContent} <div class="p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-xl shadow-lg h-full overflow-y-auto">
             <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-gray-100">Log Your Daily Activity</h2>
 
             <div id="log-message" class="hidden bg-blue-100 dark:bg-blue-700 text-blue-800 dark:text-blue-100 p-3 rounded-lg mb-4 text-center text-sm md:text-base"></div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <!-- Transport -->
                 ${InputCardHTML('Transport', 'car', `
                     <select id="transport-mode" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
                         <option value="">Select Mode</option>
@@ -538,7 +530,6 @@ function renderLogActivityPage() {
                     </select>
                 `, 'transport')}
 
-                <!-- Electricity -->
                 ${InputCardHTML('Electricity', 'zap', `
                     <select id="electricity-units" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
                         ${generateOptions(1, 100, 1, 'kWh')}
@@ -548,7 +539,6 @@ function renderLogActivityPage() {
                     </select>
                 `, 'electricity')}
 
-                <!-- Food/Diet -->
                 ${InputCardHTML('Food/Diet', 'utensils', `
                     <select id="food-diet" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
                         <option value="">Select Diet Type</option>
@@ -556,18 +546,15 @@ function renderLogActivityPage() {
                     </select>
                 `, 'food')}
 
-                <!-- Purchases/Consumption -->
                 ${InputCardHTML('Purchases', 'shopping-bag', `
                     <select id="purchase-category" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
                         <option value="">Select Category</option>
                         ${Object.keys(EMISSION_FACTORS.purchases).map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                     </select>
                     <select id="purchase-cost" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
-                        ${generateOptions(100, 50000, 100, 'currency units')} <!-- Changed increment to 100 for cost -->
-                    </select>
+                        ${generateOptions(100, 50000, 100, 'currency units')} </select>
                 `, 'purchase')}
 
-                <!-- Home Heating/Cooling -->
                 ${InputCardHTML('Home Heating/Cooling', 'thermometer', `
                     <select id="heating-cooling-duration" class="w-full p-2 md:p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base">
                         ${generateOptions(1, 24, 1, 'hours')}
@@ -691,12 +678,10 @@ function renderHistoryPage() {
     const existingContent = mainContent.innerHTML;
 
     mainContent.innerHTML = `
-        ${existingContent} <!-- Re-add the sidebar toggle button if it was there -->
-        <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
+        ${existingContent} <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
             <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-gray-100">Your Emission History</h2>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <!-- Daily Trends Data Table -->
                 <div class="bg-gradient-to-tr from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 md:p-6 rounded-xl shadow-md">
                     <h3 class="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-gray-800 dark:text-gray-100">Daily CO₂ Emissions (Last 30 Days)</h3>
                     <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
@@ -722,7 +707,6 @@ function renderHistoryPage() {
                     </p>
                 </div>
 
-                <!-- Emissions by Category Data Table -->
                 <div class="bg-gradient-to-tr from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 md:p-6 rounded-xl shadow-md">
                     <h3 class="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-gray-800 dark:text-gray-100">Emissions by Category (Last Logged Day)</h3>
                     ${pieChartData.length > 0 ? `
@@ -771,8 +755,7 @@ function renderComparePage() {
     const existingContent = mainContent.innerHTML;
 
     mainContent.innerHTML = `
-        ${existingContent} <!-- Re-add the sidebar toggle button if it was there -->
-        <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
+        ${existingContent} <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
             <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-gray-100">Compare Your Footprint</h2>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
@@ -878,8 +861,7 @@ function renderLearnPage() {
     const existingContent = mainContent.innerHTML;
 
     mainContent.innerHTML = `
-        ${existingContent} <!-- Re-add the sidebar toggle button if it was there -->
-        <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
+        ${existingContent} <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
             <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-gray-100">Learn About Your Carbon Footprint</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -903,8 +885,7 @@ function renderSettingsPage() {
     const existingContent = mainContent.innerHTML;
 
     mainContent.innerHTML = `
-        ${existingContent} <!-- Re-add the sidebar toggle button if it was there -->
-        <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
+        ${existingContent} <div class="p-4 sm:p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl shadow-lg h-full overflow-y-auto">
             <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-gray-100">Settings</h2>
 
             <div class="bg-gradient-to-tr from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-4 md:p-6 rounded-xl shadow-md mb-4 md:mb-6">
